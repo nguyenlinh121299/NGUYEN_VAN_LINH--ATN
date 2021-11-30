@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+50# -*- coding: utf-8 -*-
 """
 Created on Tue Nov  9 20:12:59 2021
 
@@ -22,6 +22,8 @@ from numpy.lib.function_base import sort_complex
 print ("Lặp lại 4 bước bên dưới c lần. Nhập c: ")
 c = int(input())
 
+#chuyển mảng 2 chiều sang 1 chiều ('list of list' _to_ 'list'):
+#vd: [[1,2,3],[4,5,6]] => [1,2,3,4,5,6]
 def convert2dto1d(arr2d):
     arr1d = []
     for item in arr2d:
@@ -29,6 +31,7 @@ def convert2dto1d(arr2d):
             arr1d.append (item[j])
     return arr1d
 
+#trung tâm xử lý dữ liệu ở bước 3, với các cặp có cùng id thì giữ lại 1 cặp có giá trị Rij nhỏ nhất
 def center_process(tup_list):
     # 1 list để lưu key
     list_key= []
@@ -54,17 +57,25 @@ def center_process(tup_list):
     print("\n")
     return list_target
 
+#giữ lại N phần tử nhỏ nhất trong list
 def get_some_couple(arr, n):
     # xóa các phần tử không nằm trong N phần tử nhỏ nhất: (tổng - N) phần tử ở cuối list
     i = len(arr)
     while (i > n):
         i-=1
         arr.pop()
-    print(n," cặp được chọn/gửi đi:",arr)
+    print("\n",n," cặp được chọn/gửi đi:",arr)
     print("\n")
-
     return arr
 
+def accuracy(arr,k):
+        score = 0
+        for i in arr:
+            if i <= k:
+                score += 1
+        return score/len(arr)*100
+
+#in ra k phần tử có số lần lặp lại nhiều nhất trong mảng: arr (arr có n phần tử)
 def find_top_K_occurrences(arr, n, k):
     um = {}
     for i in range(n):
@@ -79,14 +90,18 @@ def find_top_K_occurrences(arr, n, k):
         j += 1
     a = sorted(a, key=lambda x: x[0],
                reverse=False)
-    # a = sorted(a, key=lambda x: x[1],
-    #            reverse=True)
   
     # display the top k numbers
+    temp = []
+
     print(k, "mục là kết quả của bài toán tìm kiếm top K:")
     for i in range(k):
         print("item",a[i][0], end="\n")
-        
+        temp.append(a[i][0])
+    return temp
+    
+    
+
 
 # BƯỚC 1: Khởi tạo bộ dữ liệu:
 # mỗi cột sẽ sinh bộ dữ liệu gồm n phần tử, lặp lại m lần như vậy 
@@ -140,28 +155,45 @@ def find_top_K_occurrences(arr, n, k):
 
     ##### BẮT ĐẦU ###########
 
-m = 200
-n = 10000  
+m = 20
+n = 100 
 
 res_all_time = [] #tổng hợp kết quả sau c lần lặp
 res_final = [] #kết quả cuối cùng của bài toán (sẽ là k giá trị có số lần lặp lại 
                 #nhiều nhất nằm trong list 'res_all_time')
 
 
+item_score = np.random.zipf(2, size= n) 
+item_score = np.sort(item_score)
+print("item_score_debug: ",item_score)
+delay = input()
+
+#yêu cầu user nhập k hoặc để máy tự nhập
+print("Nhập k (giữ lại k cặp): ")
+k = int(input())
+# k = int(n*0.1)
+
+# yêu cầu user nhập hằng số N hoặc để máy tự nhập 
+print("Nhap hang so N: ")
+N = int(input())
+# N = m*n/2
+print("\n")
+
+
 for iter in range (c): # Lặp lại c lần tất cả các bước
     print("Lặp lại 4 bước lần thứ ",iter+1)
 
 #BƯỚC 1: Sinh bộ dữ liệu
+    # sinh các item
+    #tạo 2D list để lưu phân mảnh tất cả mỗi item trong n item ra m node
     node_score = [[0 for i in range(m)] for j in range(n)] 
 
-    for j in range(m):
-        sum_node_score = np.random.zipf(2, size= m)
-
-        temp = np.random.uniform(0, 10, n) # m phần này phân phối đều
+    for i in range(n):
+        temp = np.random.uniform(0, 10, m) # m phần này phân phối đều
         t = np.sum(temp)
 
-        for i in range(n):
-            node_score[i][j] = (i+1,sum_node_score[j]*(temp[i]/t))
+        for j in range(m):
+            node_score[i][j] = (n-i, item_score[i]*(temp[j]/t))
 
     print("Sau bước 1: node_score: ",node_score)
     print("\n")
@@ -169,30 +201,23 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
 
 #BƯỚC 2: Sắp xếp các cặp theo Rij tại mỗi node, gửi N cặp có Rij nhỏ nhất về trung tâm xử lý.
 
-    # chọn hằng số N (yêu cầu user nhập)
-    print("Nhap hang so N: ")
-    N = int(input())
-    print("\n")
-
     # chuyển từ mảng 2 chiều sang 1 chiều (gộp m list con (mỗi list n phần tử) trong 1 list to thành 1 list m*n phần tử)
     node_score = convert2dto1d(node_score)
 
     # sắp xếp mảng 1 chiều: (theo Rij)
     node_score.sort(key=lambda x:x[1])
+    print("node_score_debug: ",node_score)
+
 
     # lấy N phần tử gửi về trung tâm xử lý
     node_score = get_some_couple(node_score,N)
 
 
 #BƯỚC 3: Trung tâm xử lý N cặp gửi về (lấy cặp có Rij nhỏ nhất trong các cặp có i trùng nhau)
-        # ví dụ có 3 cặp (3, 7.54643),(3, 5.45346),(3, 2.342564) thì lấy cặp (3.2.342564); còn 2 cặp còn lại xóa đi
+        # ví dụ có 3 cặp (3, 7.54643),(3, 5.45346),(3, 2.342564) thì lấy cặp (3,2.342564); còn 2 cặp còn lại xóa đi
     node_score = center_process(node_score)
 
 #BƯỚC 4: 
-        #yêu cầu user nhập k
-    print("Nhập k (giữ lại k cặp): ")
-    k = int(input())
-
         #giữ lại k cặp có Rij nhỏ nhất trong node_score:
     node_score = get_some_couple(node_score,k)
 
@@ -205,4 +230,5 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
 
 #TÌM KẾT QUẢ CUỐI CÙNG:
 res_all_time = convert2dto1d(res_all_time)
-find_top_K_occurrences(res_all_time,len(res_all_time),k)
+list_result = find_top_K_occurrences(res_all_time,len(res_all_time),k)
+print("Độ chính xác: ", "{:.2f}".format(accuracy(list_result,len(list_result))),"%")
