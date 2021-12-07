@@ -1,4 +1,4 @@
-50# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Tue Nov  9 20:12:59 2021
 
@@ -17,8 +17,9 @@ Phân phối dữ liệu:
 # nhap thu vien
 import numpy as np
 from numpy.lib.function_base import sort_complex
+import sys
 
-
+temp_decimal = 0
 print ("Lặp lại 4 bước bên dưới c lần. Nhập c: ")
 c = int(input())
 
@@ -101,6 +102,16 @@ def find_top_K_occurrences(arr, n, k):
     return temp
     
     
+def dis_expo(number):
+    return np.random.exponential(1/number,1)[0]
+    
+def get_unicast(tup_list):
+    total_uni = 0
+
+    for item in tup_list:
+        print(len(str(item[0])))
+        total_uni += (len(str(item[0]))+len(str(item[1])))
+    return total_uni
 
 
 # BƯỚC 1: Khởi tạo bộ dữ liệu:
@@ -157,6 +168,7 @@ def find_top_K_occurrences(arr, n, k):
 
 m = 20
 n = 100 
+total_unicast = 0
 
 res_all_time = [] #tổng hợp kết quả sau c lần lặp
 res_final = [] #kết quả cuối cùng của bài toán (sẽ là k giá trị có số lần lặp lại 
@@ -193,7 +205,7 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
         t = np.sum(temp)
 
         for j in range(m):
-            node_score[i][j] = (n-i, item_score[i]*(temp[j]/t))
+            node_score[i][j] = (n-i, dis_expo(item_score[i]*(temp[j]/t)))
 
     print("Sau bước 1: node_score: ",node_score)
     print("\n")
@@ -211,6 +223,7 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
 
     # lấy N phần tử gửi về trung tâm xử lý
     node_score = get_some_couple(node_score,N)
+    total_unicast = get_unicast(node_score)
 
 
 #BƯỚC 3: Trung tâm xử lý N cặp gửi về (lấy cặp có Rij nhỏ nhất trong các cặp có i trùng nhau)
@@ -220,7 +233,7 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
 #BƯỚC 4: 
         #giữ lại k cặp có Rij nhỏ nhất trong node_score:
     node_score = get_some_couple(node_score,k)
-
+    temp_decimal = node_score[0][1]
         #lấy chỉ số của k cặp được giữ lại tương đương với kết quả cuối cùng của từng lần (mỗi lần là 4 bước trên)
     res_each_time = []
     for key,val in node_score:
@@ -231,4 +244,5 @@ for iter in range (c): # Lặp lại c lần tất cả các bước
 #TÌM KẾT QUẢ CUỐI CÙNG:
 res_all_time = convert2dto1d(res_all_time)
 list_result = find_top_K_occurrences(res_all_time,len(res_all_time),k)
-print("Độ chính xác: ", "{:.2f}".format(accuracy(list_result,len(list_result))),"%")
+print("Độ chính xác:", "{:.2f}".format(accuracy(list_result,len(list_result))),"%")
+print("Dung lượng truyền tải:",total_unicast,"bytes")
